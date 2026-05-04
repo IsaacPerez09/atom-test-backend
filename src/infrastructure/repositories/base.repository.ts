@@ -27,15 +27,16 @@ export abstract class FirestoreRepository<T> {
    * @param dateData Datos de fecha provenientes de Firestore.
    * @returns Objeto Date de JavaScript.
    */
-  protected parseDate(dateData: any): Date {
+  protected parseDate(dateData: unknown): Date {
     if (!dateData) return new Date();
-    if (typeof dateData.toDate === 'function') {
-      return dateData.toDate();
+    if (typeof dateData === 'object' && 'toDate' in dateData && typeof dateData.toDate === 'function') {
+      return (dateData as { toDate: () => Date }).toDate();
     }
-    if (dateData.seconds) {
-      return new Date(dateData.seconds * 1000);
+    if (typeof dateData === 'object' && 'seconds' in dateData) {
+      const data = dateData as { seconds: number };
+      return new Date(data.seconds * 1000);
     }
-    return new Date(dateData);
+    return new Date(dateData as string | number);
   }
 
   /**

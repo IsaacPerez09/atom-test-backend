@@ -2,6 +2,8 @@ import { Response } from 'express';
 import { UserUseCases } from '../../application/usecases/user.usecases';
 import { ResponseHelper } from '../../shared/response';
 import { logger } from '../../config/logger';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { setAuthCookie } from '../../shared/utils/cookie.util';
 
 /**
  * Controlador para las operaciones relacionadas con los usuarios.
@@ -18,10 +20,13 @@ export class UserController {
    * @param req Petición Express con email en el query string.
    * @param res Respuesta Express.
    */
-  findByEmail = async (req: any, res: Response): Promise<void> => {
+  findByEmail = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const email = req.query.email as string;
     logger.info({ email }, 'Looking up user by email');
+
     const { exists, ...data } = await this.userUseCases.findUserByEmail(email);
+    setAuthCookie(res, data.token!);
+
     res.json(ResponseHelper.success(data, { exists }));
   };
 
@@ -30,9 +35,12 @@ export class UserController {
    * @param req Petición Express con el email en el cuerpo.
    * @param res Respuesta Express (201 Created).
    */
-  create = async (req: any, res: Response): Promise<void> => {
+  create = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const { email } = req.body;
     const result = await this.userUseCases.createUser(email);
+
+    setAuthCookie(res, result.token!);
+
     res.status(201).json(ResponseHelper.success(result));
   };
 }

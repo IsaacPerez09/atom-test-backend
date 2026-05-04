@@ -20,5 +20,5 @@
       ]
     }
   ],
-  "project": "atom-task-manager-77028"
+  "project": "${env:FIREBASE_PROJECT_ID}"
 }

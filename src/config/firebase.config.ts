@@ -13,7 +13,7 @@ if (fs.existsSync(serviceAccountPath)) {
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: serviceAccount ? admin.credential.cert(serviceAccount) : admin.credential.applicationDefault(),
-    projectId: 'atom-task-manager-77028',
+    projectId: process.env.FIREBASE_PROJECT_ID,
   });
 }
 
@@ -22,7 +22,7 @@ if (!admin.apps.length) {
  * Utiliza el Admin SDK con permisos totales sobre la base de datos.
  */
 export const db = new Firestore({
-  projectId: 'atom-task-manager-77028',
+  projectId: process.env.FIREBASE_PROJECT_ID,
   credentials: serviceAccount,
   databaseId: 'atom'
 });

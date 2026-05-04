@@ -15,7 +15,7 @@ export interface AuthenticatedRequest extends Request {
 
 /**
  * Middleware para validar el token JWT en las peticiones.
- * Extrae el token del header Authorization, lo verifica e inyecta el userId en la petición.
+ * Extrae el token de las cookies o del header Authorization, lo verifica e inyecta el userId en la petición.
  * @param req Petición Express extendida.
  * @param res Respuesta Express.
  * @param next Función para continuar al siguiente middleware/controlador.
@@ -26,14 +26,13 @@ export const authMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const authHeader = req.headers.authorization;
+    // 1. Intentar obtener el token de las cookies
+    let token = req.cookies?.token;
 
-    if (!authHeader) {
-      res.status(401).json(ResponseHelper.error('UNAUTHORIZED', AppMessages.FALTA_AUTH_HEADER));
-      return;
+    // 2. Fallback al header Authorization (Para desarrollo o usuarios que no usen cookies)
+    if (!token && req.headers.authorization) {
+      token = req.headers.authorization.replace('Bearer ', '').trim();
     }
-
-    const token = authHeader.replace('Bearer ', '').trim();
 
     if (!token) {
       res.status(401).json(ResponseHelper.error('UNAUTHORIZED', AppMessages.FALTA_TOKEN));

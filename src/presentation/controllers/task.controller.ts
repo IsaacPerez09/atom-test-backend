@@ -12,7 +12,7 @@ export class TaskController {
   /**
    * @param taskUseCases Instancia de los casos de uso de tareas.
    */
-  constructor(private readonly taskUseCases: TaskUseCases) {}
+  constructor(private readonly taskUseCases: TaskUseCases) { }
 
   /**
    * Obtiene todas las tareas del usuario autenticado.
@@ -20,7 +20,7 @@ export class TaskController {
    * @param res Respuesta Express.
    */
   getAll = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
     const lastId = req.query.lastId as string | undefined;
     const result = await this.taskUseCases.getTasks(req.userId!, limit, lastId);
     res.json(ResponseHelper.success(result));
