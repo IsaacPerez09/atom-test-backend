@@ -1,0 +1,10 @@
+specVersion: v1alpha1
+endpoints:
+  api:
+    platform: gcfv2
+    entryPoint: api
+    httpsTrigger: {}
+  health:
+    platform: gcfv2
+    entryPoint: health
+    httpsTrigger: {}
