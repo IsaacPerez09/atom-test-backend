@@ -17,6 +17,10 @@ if (!admin.apps.length) {
   });
 }
 
+/**
+ * Instancia de Firestore inicializada para su uso en toda la aplicación.
+ * Utiliza el Admin SDK con permisos totales sobre la base de datos.
+ */
 export const db = new Firestore({
   projectId: 'atom-task-manager-77028',
   credentials: serviceAccount,

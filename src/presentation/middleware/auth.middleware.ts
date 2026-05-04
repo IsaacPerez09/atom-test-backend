@@ -5,10 +5,21 @@ import { envs } from '../../config/envs';
 import { logger } from '../../config/logger';
 import { AppMessages } from '../../shared/enums/messages.enum';
 
+/**
+ * Interfaz de petición extendida que incluye el ID del usuario autenticado.
+ */
 export interface AuthenticatedRequest extends Request {
+  /** ID del usuario extraído del token JWT. */
   userId?: string;
 }
 
+/**
+ * Middleware para validar el token JWT en las peticiones.
+ * Extrae el token del header Authorization, lo verifica e inyecta el userId en la petición.
+ * @param req Petición Express extendida.
+ * @param res Respuesta Express.
+ * @param next Función para continuar al siguiente middleware/controlador.
+ */
 export const authMiddleware = async (
   req: AuthenticatedRequest,
   res: Response,

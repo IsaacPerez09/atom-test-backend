@@ -1,44 +1,48 @@
 import { IUserRepository } from '../../domain/interfaces/repository.interface';
-import { User, FindUserSchema, AuthResponse, LookupResponse } from '../../domain/entities/user.entity';
+import { FindUserSchema, AuthResponse, LookupResponse } from '../../domain/entities/user.entity';
 import { ConflictError } from '../../shared/errors/app.error';
 import { AppMessages } from '../../shared/enums/messages.enum';
-import jwt from 'jsonwebtoken';
-import { envs } from '../../config/envs';
+import { AuthService } from '../services/auth.service';
 
+/**
+ * Clase que orquesta la lógica de negocio para los usuarios.
+ * Maneja el registro, búsqueda y generación de tokens JWT.
+ */
 export class UserUseCases {
-  constructor(private readonly userRepository: IUserRepository) { }
+  /**
+   * @param userRepository Instancia del repositorio de usuarios.
+   * @param authService Servicio de autenticación para manejo de tokens.
+   */
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly authService: AuthService
+  ) { }
 
-  private generateAuthResponse(user: User, exists?: boolean | null): AuthResponse | LookupResponse {
-    const token = jwt.sign({ userId: user.id }, envs.JWT_SECRET);
-    return {
-      user,
-      token,
-      ...(exists !== null && { exists })
-    };
-  }
-
+  /**
+   * Busca un usuario por email y retorna su información junto con un token si existe.
+   * @param email Email a buscar.
+   * @returns Resultado de la búsqueda con flag de existencia.
+   */
   async findUserByEmail(email: string): Promise<LookupResponse> {
-
-    const validatedData = FindUserSchema.parse({ email });
-
-    const normalizedEmail = validatedData.email.trim().toLowerCase();
-
+    const { email: normalizedEmail } = FindUserSchema.parse({ email });
     const user = await this.userRepository.findByEmail(normalizedEmail);
 
     if (!user) {
       return { user: null, exists: false };
     }
 
-    return this.generateAuthResponse(user, true) as LookupResponse;
-
+    const token = this.authService.generateToken(user.id);
+    return { user, token, exists: true };
   }
 
+  /**
+   * Registra un nuevo usuario y genera su token inicial.
+   * @param email Email del nuevo usuario.
+   * @throws {ConflictError} Si el email ya está registrado.
+   * @returns Respuesta con el nuevo usuario y su token.
+   */
   async createUser(email: string): Promise<AuthResponse> {
-
-    const validatedData = FindUserSchema.parse({ email });
-
-    const normalizedEmail = validatedData.email.trim().toLowerCase();
-
+    const { email: normalizedEmail } = FindUserSchema.parse({ email });
     const existing = await this.userRepository.findByEmail(normalizedEmail);
 
     if (existing) {
@@ -46,7 +50,7 @@ export class UserUseCases {
     }
 
     const user = await this.userRepository.create(normalizedEmail);
-    return this.generateAuthResponse(user) as AuthResponse;
-
+    const token = this.authService.generateToken(user.id);
+    return { user, token };
   }
 }

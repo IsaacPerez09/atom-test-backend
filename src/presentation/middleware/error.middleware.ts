@@ -5,6 +5,14 @@ import { logger } from '../../config/logger';
 import { ResponseHelper } from '../../shared/response';
 import { AppMessages } from '../../shared/enums/messages.enum';
 
+/**
+ * Manejador global de errores para la aplicación Express.
+ * Captura AppErrors personalizados, errores de validación Zod y errores inesperados.
+ * @param err Error capturado.
+ * @param req Petición Express.
+ * @param res Respuesta Express.
+ * @param next Función next de Express.
+ */
 export const errorHandler = (
   err: Error,
   req: Request,

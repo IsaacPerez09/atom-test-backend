@@ -8,15 +8,31 @@ import { logger } from './config/logger';
 import { envs } from './config/envs';
 import { globalLimiter } from './presentation/middleware/rate-limit.middleware';
 
+/**
+ * Aplicación principal de Express.
+ * Configura middlewares globales, límites de tráfico y rutas del API.
+ */
 const app = express();
 
 app.set('trust proxy', 1);
 
-app.use(helmet());
+app.use(helmet({
+  frameguard: {
+    action: 'deny',
+  },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+}));
+
 app.use(cors({
   origin: envs.ALLOWED_ORIGINS.split(','),
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 app.use(express.json());
