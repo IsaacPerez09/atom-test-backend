@@ -42,6 +42,61 @@ npm install
 | `npm run build` | Compila el código TypeScript a JavaScript |
 | `npm run watch` | Compila en modo watch (recompila al detectar cambios) |
 | `npm run deploy` | Despliega las funciones a Firebase Cloud Functions |
+| `npm run test` | Ejecuta tests en modo watch (re-ejecuta al guardar) |
+| `npm run test:run` | Ejecuta tests una vez (para CI/CD) |
+| `npm run coverage` | Genera reporte de cobertura de código |
+
+## Pruebas
+
+### Tipos de Pruebas
+
+| Tipo | Descripción |
+|------|-------------|
+| **Unitarias** | Testean una función/clase aislada con mocks |
+| **Integración** | Testean endpoints API completos con Express |
+
+### Comandos
+
+```bash
+# Desarrollo (modo watch - se actualiza al guardar)
+npm run test
+
+# Ejecución única (para CI/CD o antes de commit)
+npm run test:run
+
+# Ver cobertura de código
+npm run coverage
+```
+
+### Archivos de Tests
+
+```
+src/
+├── application/usecases/
+│   ├── task.usecases.test.ts     # 11 tests unitarios
+│   └── user.usecases.test.ts     # 6 tests unitarios
+└── presentation/routes/
+    └── api.integration.test.ts   # 8 tests de integración
+```
+
+### Ejemplo de Test Unitario
+
+```typescript
+test('should throw NotFoundError when task not found', async () => {
+  mockRepository.getById.mockResolvedValue(null);
+  await expect(taskUseCases.getTaskById('invalid-id'))
+    .rejects.toThrow(NotFoundError);
+});
+```
+
+### Ejemplo de Test de Integración
+
+```typescript
+it('should return 401 without authorization', async () => {
+  const response = await request(app).get('/tasks');
+  expect(response.status).toBe(401);
+});
+```
 
 
 ## Variables de Entorno / Secrets
@@ -64,7 +119,7 @@ El token generado debe agregarse en GitHub: **Settings → Secrets → New repos
 
 ### Variables de Entorno (Local)
 
-No se requieren variables de entorno para desarrollo local. Firebase CLI usa la configuración de `.firebaserc`.
+No se requieren variables de entorno para desarrollo local. He dejado valores por defecto para que no tengan la molestia de crear el env. Pero es necesario la key de cuenta de servicio .json de firebase.
 
 ## Estructura del Proyecto
 
@@ -94,12 +149,25 @@ atom-test-backend/
 └── firestore.rules
 ```
 
+
+
+## Decisiones de Diseño y Comentarios
+
 ### Clean Architecture
 
 - **Domain:** Define qué datos existen y qué operaciones son válidas
 - **Application:** Contiene la lógica de negocio independiente de frameworks
 - **Infrastructure:** Implementa los repositorios que interactúan con Firestore
 - **Presentation:** Maneja las requests HTTP y la validación
+
+### Firebase Cloud Functions 2nd Gen
+Se usa la segunda generación por mejor rendimiento y soporte de Node.js 22. Las funciones se configuran via `functions.yaml` en la raíz del proyecto.
+
+### Zod para validación
+Validación de schemas en runtime con Zod, más seguro que validaciones manuales.
+
+### Formato de respuesta estándar
+Todas las APIs devuelven `{ success, data, error, meta }` para consistencia en el frontend.
 
 ## API Endpoints
 
@@ -184,4 +252,6 @@ Para que funcione, necesitas configurar el secret `FIREBASE_TOKEN` en el reposit
 |--------|-----|
 | API | https://us-central1-atom-task-manager-77028.cloudfunctions.net/api |
 | Health | https://us-central1-atom-task-manager-77028.cloudfunctions.net/health |
+
+
 
